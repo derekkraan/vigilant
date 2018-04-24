@@ -1,18 +1,12 @@
 defmodule ProcessMonitor do
   @moduledoc """
-  Documentation for ProcessMonitor.
+  ProcessMonitor offers tools to help monitor processes.
   """
 
   @doc """
-  Hello world.
-
-  ## Examples
-
-      iex> ProcessMonitor.hello
-      :world
-
+  Monitors the process identified by `pid` and ensures that it does not exceed `memory_limit_mb`.
   """
-  def hello do
-    :world
+  def limit_memory_mb(pid \\ self(), memory_limit_mb) do
+    GenServer.start_link(ProcessMonitor.MonitorMemory, {pid, memory_limit_mb})
   end
 end
