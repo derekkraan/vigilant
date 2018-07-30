@@ -50,7 +50,7 @@ defmodule ProcessMonitorTest do
       {:ok, agent} = Agent.start(fn -> nil end)
 
       assert :ok =
-               Agent.update(agent, fn s ->
+               Agent.update(agent, fn _s ->
                  fn ->
                    Process.sleep(1000)
                    500

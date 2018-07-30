@@ -13,10 +13,12 @@ defmodule ProcessMonitor.MonitorMemory do
   def init({pid, memory_limit_mb}) do
     Logger.debug("monitoring #{inspect(pid)}, ensuring it stays under #{memory_limit_mb}Mb")
     schedule_next_check()
+    Process.monitor(pid)
     {:ok, {pid, memory_limit_mb * @megabyte}}
   end
 
-  defp schedule_next_check(), do: Process.send_after(self(), :tick, @tick_interval)
+  def handle_info({:DOWN, _ref, :process, _object, _reason}, state),
+    do: {:stop, :normal, state}
 
   def handle_info(:tick, {pid, memory_limit_bytes}) do
     {:memory, memory_bytes} = Process.info(pid, :memory)
@@ -29,9 +31,13 @@ defmodule ProcessMonitor.MonitorMemory do
       )
 
       Process.exit(pid, :kill)
-    end
 
-    schedule_next_check()
-    {:noreply, {pid, memory_limit_bytes}}
+      {:stop, :normal, nil}
+    else
+      schedule_next_check()
+      {:noreply, {pid, memory_limit_bytes}}
+    end
   end
+
+  defp schedule_next_check(), do: Process.send_after(self(), :tick, @tick_interval)
 end
