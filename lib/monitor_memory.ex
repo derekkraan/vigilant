@@ -17,23 +17,31 @@ defmodule Vigilant.MonitorMemory do
     {:ok, {pid, memory_limit_mb * @megabyte}}
   end
 
-  def handle_info({:DOWN, _ref, :process, _object, _reason}, state),
-    do: {:stop, :normal, state}
+  def handle_info({:DOWN, _ref, :process, _object, _reason}, {pid, memory_limit_bytes}) do
+    Logger.debug(fn -> "Process #{inspect(pid)} is DOWN, stopping monitor" end)
+    {:stop, :normal, {pid, memory_limit_bytes}}
+  end
 
   def handle_info(:tick, {pid, memory_limit_bytes}) do
     {:memory, memory_bytes} = Process.info(pid, :memory)
 
     if(memory_bytes > memory_limit_bytes) do
-      Logger.debug(
+      Logger.debug(fn ->
         "killing process #{inspect(pid)} because it's memory usage (#{
           round(memory_bytes / @megabyte)
         }Mb) is greater than #{round(memory_limit_bytes / @megabyte)}Mb."
-      )
+      end)
 
       Process.exit(pid, :kill)
 
       {:stop, :normal, nil}
     else
+      Logger.debug(fn ->
+        "not killing process #{inspect(pid)} because it's memory usage (#{
+          round(memory_bytes / @megabyte)
+        }Mb) isn't greater than #{round(memory_limit_bytes / @megabyte)}Mb."
+      end)
+
       schedule_next_check()
       {:noreply, {pid, memory_limit_bytes}}
     end

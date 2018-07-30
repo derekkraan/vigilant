@@ -13,7 +13,8 @@ defmodule Vigilant do
         Vigilant.MonitorSupervisor,
         %{
           id: "Vigilant.MonitorMemory.#{inspect(pid)}",
-          start: {GenServer, :start_link, [Vigilant.MonitorMemory, {pid, memory_limit_mb}]}
+          start: {GenServer, :start_link, [Vigilant.MonitorMemory, {pid, memory_limit_mb}]},
+          restart: :transient
         }
       )
 
@@ -38,7 +39,8 @@ defmodule Vigilant do
         %{
           id: id,
           start:
-            {GenServer, :start_link, [Vigilant.MonitorTimeout, {self(), timeout, after_timeout}]}
+            {GenServer, :start_link, [Vigilant.MonitorTimeout, {self(), timeout, after_timeout}]},
+          restart: :transient
         }
       )
 

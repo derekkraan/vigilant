@@ -14,7 +14,8 @@ defmodule VigilantTest do
           []
         end)
 
-      assert {:killed, _} = catch_exit(Agent.update(agent, fn s -> MemoryLeak.leak(s) end))
+      assert {:killed, _} =
+               catch_exit(Agent.update(agent, fn s -> MemoryLeak.leak(s) end, 10_000))
     end
 
     test "does not kill well behaved process" do
@@ -41,7 +42,7 @@ defmodule VigilantTest do
       assert {:killed, _} =
                catch_exit(
                  Agent.update(agent, fn _s ->
-                   Vigilant.enforce_timeout(fn -> Process.sleep(1200) end, 1000)
+                   Vigilant.enforce_timeout(fn -> Process.sleep(1200) end, 100)
                  end)
                )
     end
@@ -52,10 +53,10 @@ defmodule VigilantTest do
       assert :ok =
                Agent.update(agent, fn _s ->
                  fn ->
-                   Process.sleep(1000)
+                   Process.sleep(50)
                    500
                  end
-                 |> Vigilant.enforce_timeout(1200)
+                 |> Vigilant.enforce_timeout(100)
                end)
     end
   end
