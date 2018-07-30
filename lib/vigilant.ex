@@ -22,6 +22,26 @@ defmodule Vigilant do
   end
 
   @doc """
+  Monitors the process identified by `pid` and ensures that its message queue
+  does not exceed `message_queue_size`.
+  """
+  @spec limit_message_queue(pid :: pid(), message_queue_size :: integer()) :: :ok
+  def limit_message_queue(pid \\ self(), message_queue_size) do
+    {:ok, _child} =
+      DynamicSupervisor.start_child(
+        Vigilant.MonitorSupervisor,
+        %{
+          id: "Vigilant.MonitorMessageQueue.#{inspect(pid)}",
+          start: {GenServer, :start_link, [Vigilant.MonitorMessageQueue, {pid, message_queue_size}]},
+          restart: :transient
+        }
+      )
+
+    :ok
+  end
+
+
+  @doc """
   Kills the calling process if `fun.()` does not complete within the timeout. Returns the result of calling `fun.()`.
   """
   @spec enforce_timeout(

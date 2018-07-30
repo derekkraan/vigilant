@@ -60,4 +60,41 @@ defmodule VigilantTest do
                end)
     end
   end
+
+  describe ".limit_message_queue/2" do
+    test "kills process after message queue grows too much" do
+      pid = spawn(fn ->
+        receive do
+          :not_matching -> :ok
+        end
+      end)
+
+
+      Vigilant.limit_message_queue(pid, 100)
+
+      for _ <- 1..101, do: send(pid, :msg)
+
+      # Wait one tick interval
+      Process.sleep(500)
+
+      refute Process.alive?(pid)
+    end
+
+    test "does not kill process with message queue size below the limit" do
+      pid = spawn(fn ->
+        receive do
+          :not_matching -> :ok
+        end
+      end)
+
+      Vigilant.limit_message_queue(pid, 100)
+
+      for _ <- 1..99, do: send(pid, :msg)
+
+      # Wait one tick interval
+      Process.sleep(500)
+
+      assert Process.alive?(pid)
+    end
+  end
 end
