@@ -1,8 +1,8 @@
-defmodule ProcessMonitorTest do
+defmodule VigilantTest do
   use ExUnit.Case
-  doctest ProcessMonitor
+  doctest Vigilant
 
-  describe ".limit_memory_mb/2" do
+  describe ".limit_memory/2" do
     defmodule MemoryLeak do
       def leak(x \\ %{}), do: ["leaky leaky leaky leaky leaky leaky" | x] |> leak()
     end
@@ -10,7 +10,7 @@ defmodule ProcessMonitorTest do
     test "kills a process when memory usage gets too high" do
       {:ok, agent} =
         Agent.start(fn ->
-          ProcessMonitor.limit_memory_mb(self(), 100)
+          Vigilant.limit_memory(100)
           []
         end)
 
@@ -20,7 +20,7 @@ defmodule ProcessMonitorTest do
     test "does not kill well behaved process" do
       {:ok, agent} =
         Agent.start(fn ->
-          ProcessMonitor.limit_memory_mb(self(), 5)
+          Vigilant.limit_memory(5)
           5
         end)
 
@@ -41,7 +41,7 @@ defmodule ProcessMonitorTest do
       assert {:killed, _} =
                catch_exit(
                  Agent.update(agent, fn _s ->
-                   ProcessMonitor.enforce_timeout(fn -> Process.sleep(1200) end, 1000)
+                   Vigilant.enforce_timeout(fn -> Process.sleep(1200) end, 1000)
                  end)
                )
     end
@@ -55,7 +55,7 @@ defmodule ProcessMonitorTest do
                    Process.sleep(1000)
                    500
                  end
-                 |> ProcessMonitor.enforce_timeout(1200)
+                 |> Vigilant.enforce_timeout(1200)
                end)
     end
   end

@@ -1,4 +1,4 @@
-defmodule ProcessMonitor.MonitorTimeout do
+defmodule Vigilant.MonitorTimeout do
   use GenServer
   require Logger
 

@@ -1,11 +1,11 @@
-defmodule ProcessMonitor.MonitorMemory do
+defmodule Vigilant.MonitorMemory do
   use GenServer
   require Logger
 
   @megabyte :math.pow(2, 20)
 
   @moduledoc """
-  ProcessMonitor monitors your processes and kills them when they consume too much memory or too much CPU.
+  Vigilant monitors your processes and kills them when they consume too much memory or too much CPU.
   """
 
   @tick_interval 500
