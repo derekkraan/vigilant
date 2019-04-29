@@ -32,7 +32,7 @@ defmodule Vigilant.MixProject do
       description: "Vigilant keeps an eye on your processes.",
       licenses: ["MIT"],
       maintainers: ["Derek Kraan"],
-      links: %{github: "https://github.com/derekkraan/vigilant"}
+      links: %{GitHub: "https://github.com/derekkraan/vigilant"}
     ]
   end
 end
