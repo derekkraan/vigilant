@@ -23,27 +23,32 @@ defmodule Vigilant.MonitorMemory do
   end
 
   def handle_info(:tick, {pid, memory_limit_bytes}) do
-    {:memory, memory_bytes} = Process.info(pid, :memory)
+    case Process.info(pid, :memory) do
+      nil ->
+        # Then stop, because the process has died.
+        {:stop, :normal, nil}
 
-    if(memory_bytes > memory_limit_bytes) do
-      Logger.debug(fn ->
-        "killing process #{inspect(pid)} because it's memory usage (#{
-          round(memory_bytes / @megabyte)
-        }Mb) is greater than #{round(memory_limit_bytes / @megabyte)}Mb."
-      end)
+      {:memory, memory_bytes} ->
+        if(memory_bytes > memory_limit_bytes) do
+          Logger.debug(fn ->
+            "killing process #{inspect(pid)} because it's memory usage (#{
+              round(memory_bytes / @megabyte)
+            }Mb) is greater than #{round(memory_limit_bytes / @megabyte)}Mb."
+          end)
 
-      Process.exit(pid, :kill)
+          Process.exit(pid, :kill)
 
-      {:stop, :normal, nil}
-    else
-      Logger.debug(fn ->
-        "not killing process #{inspect(pid)} because it's memory usage (#{
-          round(memory_bytes / @megabyte)
-        }Mb) isn't greater than #{round(memory_limit_bytes / @megabyte)}Mb."
-      end)
+          {:stop, :normal, nil}
+        else
+          Logger.debug(fn ->
+            "not killing process #{inspect(pid)} because it's memory usage (#{
+              round(memory_bytes / @megabyte)
+            }Mb) isn't greater than #{round(memory_limit_bytes / @megabyte)}Mb."
+          end)
 
-      schedule_next_check()
-      {:noreply, {pid, memory_limit_bytes}}
+          schedule_next_check()
+          {:noreply, {pid, memory_limit_bytes}}
+        end
     end
   end
 
